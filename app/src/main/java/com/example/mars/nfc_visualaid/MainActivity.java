@@ -23,6 +23,17 @@ import android.widget.Toast;
 
 import java.util.Locale;
 
+
+/**
+ * Programmer: Marcio Castillo
+ * Email: mecastillo00@gmail.com
+ * Date: May 1, 2016
+ *
+ * Summary: This project is intended to aid the visually impaired students
+ * of Brooklyn College and direct them to the right room. By using a android
+ * phone's built in NFC sensor and placing NFC tags on classroom, bathroom
+ * and offices this will help navigate them inside the campus.
+ */
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
     NfcAdapter nfcAdapter;
@@ -46,16 +57,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //added code by me
         nfcAdapter = NfcAdapter.getDefaultAdapter(this);
-        //tb = (ToggleButton)findViewById(R.id.toggleButton);
         tagText = (TextView) findViewById(R.id.textView);
 
         //check if NFC is enabled
         if(!nfcAdapter.isEnabled())
             Toast.makeText(this, "Please enable NFC", Toast.LENGTH_SHORT).show();
 
-        ttSpeech =new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+        //setting up the speech function
+        ttSpeech = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
                 if(status != TextToSpeech.ERROR) {
@@ -64,15 +74,20 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
         });
 
+        //i slowed down the speech rate a little
+        //the default one is a little too fast
         ttSpeech.setSpeechRate((float) .6);
 
-        //added by me
+        //This is for the compass
         mSensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         mMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
         mPointer = (ImageView) findViewById(R.id.imageView);
     }
 
+    //This is called whenever the sensor values have changed.
+    //When values change, the direction of the arrow will also
+    //change. This will always point to magnetic north.
     @Override
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor == mAccelerometer) {
@@ -104,11 +119,16 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
+
+    //Doesn't do a anything at the moment, but it must be added in the code.
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
         // TODO Auto-generated method stub
     }
 
+
+    //On a pause state it is best to turn off the senors that
+    //are begin used. This also saves battery life.
     @Override
     protected void onPause() {
         super.onPause();
@@ -118,6 +138,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mSensorManager.unregisterListener(this, mMagnetometer);
     }
 
+    //When coming back from a paused state you must enable the senors
+    //for it to work properly
     @Override
     protected void onResume() {
         super.onResume();
@@ -127,6 +149,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mSensorManager.registerListener(this, mMagnetometer, SensorManager.SENSOR_DELAY_GAME);
     }
 
+    //Gives your current foreground activity priority in receiving NFC events over
+    //all other actvities.
     private void enableForegroundDispatchSystem(){
         Intent intent = new Intent(this, MainActivity.class).addFlags(Intent.FLAG_RECEIVER_REPLACE_PENDING);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
@@ -134,10 +158,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         nfcAdapter.enableForegroundDispatch(this, pendingIntent, intentFilters, null);
     }
 
+    //Disable priority for NFC events
     private void disableForegroundDispatchSystem(){
         nfcAdapter.disableForegroundDispatch(this);
     }
 
+    //This is somewhat like an action listener where the app will react
+    //to any nearby nfc tag
     @Override
     protected void onNewIntent(Intent intent){
         super.onNewIntent(intent);
@@ -156,6 +183,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
+    //This will set text on the screen and will call the
+    //speech function to say the text from the NFC tag
     private void readTextFromMessage(NdefMessage msg) {
         NdefRecord[] ndefRecords = msg.getRecords();
 
@@ -170,7 +199,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
-
+    //returns NFC tag data into a readable string
     public String getTextFromNdefRecord(NdefRecord ndefRecord){
         String tagContent = null;
         try{
