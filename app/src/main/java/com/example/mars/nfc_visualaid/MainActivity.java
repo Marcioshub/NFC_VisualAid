@@ -21,7 +21,13 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Locale;
+import java.io.File;
+import java.io.FileReader;
+import java.io.InputStream;
 
 
 /**
@@ -51,6 +57,21 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private float[] mOrientation = new float[3];
     private float mCurrentDegree = 0f;
     private ImageView mPointer;
+
+    //Array of rooms which has a few rooms inside
+    private secondFloor secFl = new secondFloor();
+
+    //shows current compass degree data
+    private TextView degreeData;
+
+    //destination
+    private String destination;
+
+    //current location
+    private String currLocation;
+
+    //steps for walking
+    private int steps;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,6 +104,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         mMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
         mPointer = (ImageView) findViewById(R.id.imageView);
+
+        //output of compass
+        degreeData = (TextView) findViewById(R.id.textView2);
+
+        //Read classroom from file to get class destination
+        destination = readFile();
+        tagText.setText("Your destination is " + destination);
     }
 
     //This is called whenever the sensor values have changed.
@@ -116,6 +144,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
             mPointer.startAnimation(ra);
             mCurrentDegree = -azimuthInDegress;
+
+            //change to current degree
+            degreeData.setText(String.valueOf(Math.abs(mCurrentDegree)));
         }
     }
 
@@ -190,9 +221,20 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         if(ndefRecords != null && ndefRecords.length > 0){
             NdefRecord ndefRecord = ndefRecords[0];
-            String tagContent = getTextFromNdefRecord(ndefRecord);
-            tagText.setText(tagContent);
-            ttSpeech.speak(tagContent, TextToSpeech.QUEUE_FLUSH, null);
+
+            currLocation = getTextFromNdefRecord(ndefRecord);
+
+            if(currLocation.equals(destination)) {
+                ttSpeech.speak("You have found your room", TextToSpeech.QUEUE_FLUSH, null);
+                tagText.setText("You have found your room");
+            }
+            else{
+                //Call algorthim to get closer to the room
+                String numOfSteps = secFl.movementHelper(currLocation, destination);
+                tagText.setText(numOfSteps);
+                ttSpeech.speak(numOfSteps, TextToSpeech.QUEUE_FLUSH, null);
+            }
+
         }
         else{
             Toast.makeText(this, "No ndef records found", Toast.LENGTH_SHORT).show();
@@ -211,5 +253,43 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             Log.e("getTextFromNdefRecord", e.getMessage(), e);
         }
         return tagContent;
+    }
+
+    //read the data from a saved text file with the app
+    public String readFile(){
+        StringBuilder text = new StringBuilder();
+
+        InputStream ins = getResources().openRawResource(
+                getResources().getIdentifier("classroom",
+                        "raw", getPackageName()));
+
+        try {
+            BufferedReader br = new BufferedReader(new InputStreamReader(ins));
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                text.append(line);
+                //text.append('\n');
+            }
+            br.close();
+        }
+        catch (IOException e) {
+            //You'll need to add proper error handling here
+        }
+
+        return text.toString();
+    }
+
+    //not needed at the moment, but this gets compass data
+    public String getCompassData(){
+        //compass pointing NORTH, EAST, WEST, SOUTH or Error
+        int tmp = Integer.parseInt(degreeData.getText().toString());
+
+        if(tmp >= 270 || tmp <= 90)
+            return "N"; //north side
+        else if(tmp > 100 || tmp <= 260)
+            return "S"; //south side
+        else
+            return "Error";
     }
 }
