@@ -54,6 +54,15 @@ public class secondFloor {
     }
 
 
+    /**
+     * Depending if the curr
+     *
+     *
+     * @param currLocation - Is your current room location
+     * @param destination - The room you want to go to
+     * @return - This returns a string which will direct you
+     * in the right direction
+     */
     public String movementHelper(String currLocation, String destination){
         steps = 0;
         int index = 0;
@@ -70,20 +79,77 @@ public class secondFloor {
                 break;
             }
 
-        //figures out which direction to go
-        if(curr < des){
-            for(int i = index; i < 7; i++)
-                if(southSide[i].charAt(0) != 'R' && southSide[i].charAt(0) != 'S')
-                    steps += Integer.parseInt(southSide[i]);
+        if(currLocation.charAt(5) == 'S' && destination.charAt(5) == 'S') {
 
-            text += "Go right and take about ";
+            //figures out which direction to go
+            if (curr < des) {
+                for (int i = index; i < 7; i++)
+                    if (southSide[i].charAt(0) != 'R')
+                        steps += Integer.parseInt(southSide[i]);
+
+                text += "Go right and take about ";
+            } else {
+                for (int i = index; i > -1; i--)
+                    if (southSide[i].charAt(0) != 'R')
+                        steps += Integer.parseInt(southSide[i]);
+
+                text += "Go left and take about ";
+            }
+        }
+        else if(currLocation.charAt(5) == 'N' && destination.charAt(5) == 'N'){
+            //figures out which direction to go
+            if (curr < des) {
+                for (int i = index; i < 7; i++)
+                    if (northSide[i].charAt(0) != 'R')
+                        steps += Integer.parseInt(northSide[i]);
+
+                text += "Go left and take about ";
+            } else {
+                for (int i = index; i > -1; i--)
+                    if (northSide[i].charAt(0) != 'R')
+                        steps += Integer.parseInt(northSide[i]);
+
+                text += "Go right and take about ";
+            }
+        }
+        else if(currLocation.charAt(5) == 'S' && destination.charAt(5) == 'N'){
+            //figures out which direction to go
+            if (curr < des) {
+                for (int i = index; i < 7; i++)
+                    if (northSide[i].charAt(0) != 'R')
+                        steps += Integer.parseInt(northSide[i]);
+
+                text += "Slowly turn around and take about 4 steps across the other wall " +
+                        " and go left and take about ";
+            } else {
+                for (int i = index; i > -1; i--)
+                    if (northSide[i].charAt(0) != 'R')
+                        steps += Integer.parseInt(northSide[i]);
+
+                text += "Slowly turn around and take about 4 steps across the other wall " +
+                        " and go right and take about ";
+            }
+        }
+        else if(currLocation.charAt(5) == 'N' && destination.charAt(5) == 'S'){
+            //figures out which direction to go
+            if (curr < des) {
+                for (int i = index; i < 7; i++)
+                    if (southSide[i].charAt(0) != 'R')
+                        steps += Integer.parseInt(southSide[i]);
+
+                text += "Slowly turn around and take about 4 steps across the other " +
+                        "wall parallel to this one and go right and take about ";
+            } else {
+                for (int i = index; i > -1; i--)
+                    if (southSide[i].charAt(0) != 'R')
+                        steps += Integer.parseInt(southSide[i]);
+
+                text += "Slowly turn around and take about 4 steps across the other " +
+                        "wall parallel to this one and go left and take about ";
+            }
         }
         else{
-            for(int i = index; i > -1; i--)
-                if(southSide[i].charAt(0) != 'R' && southSide[i].charAt(0) != 'S')
-                    steps += Integer.parseInt(southSide[i]);
-
-            text += "Go left and take about ";
+            return "Error";
         }
 
         text += steps + " number of steps";

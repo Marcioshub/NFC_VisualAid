@@ -231,8 +231,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             else{
                 //Call algorthim to get closer to the room
                 String numOfSteps = secFl.movementHelper(currLocation, destination);
-                tagText.setText(numOfSteps);
-                ttSpeech.speak(numOfSteps, TextToSpeech.QUEUE_FLUSH, null);
+
+                if(numOfSteps.equals("Error")){
+                    tagText.setText("there an error in finding your room, please try again");
+                    ttSpeech.speak("there an error in finding your room, please try again", TextToSpeech.QUEUE_FLUSH, null);
+                }
+                else{
+                    tagText.setText(numOfSteps);
+                    ttSpeech.speak(numOfSteps, TextToSpeech.QUEUE_FLUSH, null);
+                }
             }
 
         }
